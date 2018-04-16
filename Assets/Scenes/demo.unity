@@ -484,7 +484,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forceX: 3.7
-  forceY: 10.61
+  forceY: 23
   currentControl: 0
 --- !u!114 &291516042
 MonoBehaviour:

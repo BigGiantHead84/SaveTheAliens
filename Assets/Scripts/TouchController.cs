@@ -61,7 +61,7 @@ public class TouchController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        print("Euler z rotation of Player: " + player.transform.localEulerAngles.z);
+        //print("Euler z rotation of Player: " + player.transform.localEulerAngles.z);
 #if UNITY_EDITOR
         MouseMovement();
 
@@ -113,47 +113,67 @@ public class TouchController : MonoBehaviour
 
         }
 
-    void HanleRotation()
-    {
+    void HanleRotationRight()
+    { 
+        if (player.transform.localEulerAngles.z==0 || player.transform.localEulerAngles.z > 0 && player.transform.localEulerAngles.z >= 318 || player.transform.localEulerAngles.z <33)
+            player.transform.Rotate(0, 0, -0.5f);
 
+       
+    }
+    void HanleRotationLeft()
+    {
+         if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z <= 32 || player.transform.localEulerAngles.z >317)
+            player.transform.Rotate(0, 0, 0.5f);
+    }
+
+    void LevelRotation()
+    {
+        if (player.transform.localEulerAngles.z < 30.1f && player.transform.localEulerAngles.z > 0)
+        {
+            print("Level rotate right");
+            player.transform.Rotate(0, 0, -0.1f);
+
+        }
+        else if ( player.transform.localEulerAngles.z<=359.5f && player.transform.localEulerAngles.z>0 && player.transform.localEulerAngles.z<32)
+        {
+            print("Level rotate left");
+            player.transform.Rotate(0, 0, 0.1f);
+        }
+        
     }
     void MouseMovement()
     {
         if (Input.GetMouseButton(0) && Input.mousePosition.x > Screen.width / 2) //mouse clicked right side
         {
-            print("Right side");
+            print("Right side. Rotation z: " + player.transform.localEulerAngles.z);
             if (currentControl == PhysicControls.direct)
             {
                 rbPlayer.AddForce(new Vector2(forceX, forceY), ForceMode2D.Force);
-
-                if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z >= 320 || player.transform.localEulerAngles.z < 30)
-                    player.transform.Rotate(0, 0, -0.2f);
+                HanleRotationRight();
             }
             else // PhysicControls are Thrusters
             {
                 rbPlayer.AddForce(-leftThrust.transform.up * 15.4f);
+                HanleRotationRight();
             }
         }
         else if (Input.GetMouseButton(0) && Input.mousePosition.x < Screen.width / 2) // Mouse clicked left side
         {
-            print("Left side");
+            print("Left side. Rotation z: " + player.transform.localEulerAngles.z);
             if (currentControl == PhysicControls.direct)
             {
                 rbPlayer.AddForce(new Vector2(-forceX, forceY), ForceMode2D.Force);
-                if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z < 30 || player.transform.localEulerAngles.z >= 320)
-                    player.transform.Rotate(0, 0, 0.2f);
+                HanleRotationLeft();
             }
             else
             {
                 rbPlayer.AddForce(-rightThrust.transform.up * 15.4f);
+                HanleRotationLeft();
             }
         }
-        else // If not clicking on mouse
-        {
-            if (player.transform.localEulerAngles.z > 0 && player.transform.localEulerAngles.z < 32)
-                player.transform.Rotate(0, 0, -0.2f);
-            else if (player.transform.localEulerAngles.z > 0 && player.transform.localEulerAngles.z > 318)
-                player.transform.Rotate(0, 0, 0.2f);
+        else // If not clicking on mouse, handle rotation anyways
+        { 
+            LevelRotation();
         }
     }
     void TouchMovement()
