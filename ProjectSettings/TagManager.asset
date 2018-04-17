@@ -6,8 +6,9 @@ TagManager:
   tags:
   - Thruster_left
   - Thruster_right
-  - ParaCameraNear
   - Ground
+  - Background
+  - ButtonControls
   layers:
   - Default
   - TransparentFX
@@ -17,12 +18,12 @@ TagManager:
   - UI
   - 
   - 
-  - Background
-  - Sky
-  - 
-  - 
-  - 
-  - 
+  - Parallax_1
+  - Parallax_2
+  - Parallax_3
+  - Parallax_4
+  - Parallax_5
+  - Gameplay
   - 
   - 
   - 
