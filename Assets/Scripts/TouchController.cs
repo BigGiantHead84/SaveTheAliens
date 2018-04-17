@@ -6,9 +6,9 @@ using UnityEngine.UI;
 public class TouchController : MonoBehaviour
 {
     GameObject player;
-    Animator playerAnim;
-    Animation playerAnimation;
-    AnimationState pAnimState;
+    Transform playerTrans;
+    public float maxRotationZ;
+    public float rotationSpeed;
 
     GameObject leftThrust;
     GameObject rightThrust;
@@ -35,6 +35,7 @@ public class TouchController : MonoBehaviour
     void Start()
     {
         player = GameObject.Find("Player");
+        playerTrans = player.GetComponent<Transform>();
         GroundCheck = GetComponent<CircleCollider2D>();
         touchText = GameObject.Find("TouchCText");
         print("Quoaternion identity rotation: " + player.transform.localEulerAngles);
@@ -94,13 +95,15 @@ public class TouchController : MonoBehaviour
 
     void HandleRotationRight()
     {
-        if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z > 0 && player.transform.localEulerAngles.z >= 318 || player.transform.localEulerAngles.z < 33)
-            player.transform.Rotate(0, 0, -1.5f);
+        print(playerTrans.localEulerAngles.z.ToString());
+        if (playerTrans.localEulerAngles.z == 0 || playerTrans.localEulerAngles.z > 0 && playerTrans.localEulerAngles.z >= 340 || playerTrans.localEulerAngles.z < 33)
+            player.transform.Rotate(0, 0, -0.5f);
     }
     void HandleRotationLeft()
     {
-        if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z <= 32 || player.transform.localEulerAngles.z > 317)
-            player.transform.Rotate(0, 0, 1.5f);
+        print(playerTrans.localEulerAngles.z.ToString());
+        if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z <= 20 || player.transform.localEulerAngles.z > 317)
+            player.transform.Rotate(0, 0, 0.5f);
     }
 
     void LevelRotation()
