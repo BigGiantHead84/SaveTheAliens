@@ -13,6 +13,7 @@ public class TouchController : MonoBehaviour
     GameObject leftThrust;
     GameObject rightThrust;
     Rigidbody2D rbPlayer;
+    CircleCollider2D GroundCheck;
     public float forceX;
     public float forceY;
     private Vector2 fp; // first finger position
@@ -21,7 +22,9 @@ public class TouchController : MonoBehaviour
     private float swipeDistanceX;
     private float swipeDistanceY;
     public PhysicControls currentControl;
-    
+    GameObject touchText;
+    bool isTouchingGround = false;
+
 
     public enum PhysicControls
     {
@@ -32,9 +35,9 @@ public class TouchController : MonoBehaviour
     void Start()
     {
         player = GameObject.Find("Player");
+        GroundCheck = GetComponent<CircleCollider2D>();
+        touchText = GameObject.Find("TouchCText");
         print("Quoaternion identity rotation: " + player.transform.localEulerAngles);
-        playerAnim = player.GetComponent<Animator>();
-        playerAnimation = player.GetComponent<Animation>();
 
         leftThrust = GameObject.FindWithTag("Thruster_left");
         rightThrust = GameObject.FindWithTag("Thruster_right");
@@ -46,10 +49,11 @@ public class TouchController : MonoBehaviour
             Debug.Log("Direct, disabling thrusters...");
             leftThrust.SetActive(false);
             rightThrust.SetActive(false);
+            touchText.GetComponent<Text>().text = "Direct";
         }
         else if (currentControl == PhysicControls.thrusters)
         {
-            Debug.Log("Thrusters, enabling thruster-mode");
+            touchText.GetComponent<Text>().text = "Thrusters";
         }
 #if UNITY_EDITOR
         Debug.Log("Unity Editor");
@@ -66,30 +70,136 @@ public class TouchController : MonoBehaviour
         MouseMovement();
 
 #elif UNITY_ANDROID
+       
+        TouchMovement();
+#endif
+
+    }
+
+    public void ToggleThrusters()
+    {
+        if (currentControl == PhysicControls.direct)
+        {
+            currentControl = PhysicControls.thrusters;
+            print("Thrusters in use");
+            touchText.GetComponent<Text>().text = "Thrusters";
+        }
+        else
+        {
+            currentControl = PhysicControls.direct;
+            print("Direct controls in use");
+            touchText.GetComponent<Text>().text = "Direct";
+        }
+    }
+
+    void HandleRotationRight()
+    {
+        if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z > 0 && player.transform.localEulerAngles.z >= 318 || player.transform.localEulerAngles.z < 33)
+            player.transform.Rotate(0, 0, -1.5f);
+    }
+    void HandleRotationLeft()
+    {
+        if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z <= 32 || player.transform.localEulerAngles.z > 317)
+            player.transform.Rotate(0, 0, 1.5f);
+    }
+
+    void LevelRotation()
+    {
+        if (isTouchingGround == false)
+        {
+            if (player.transform.localEulerAngles.z < 180)
+            {
+                player.transform.Rotate(0, 0, -1.2f);
+
+            }
+            else if (player.transform.localEulerAngles.z > 180)
+            {
+                player.transform.Rotate(0, 0, 1.2f);
+            }
+        }
+
+    }
+    void MouseMovement()
+    {
+        if (Input.GetMouseButton(0) && Input.mousePosition.x > Screen.width / 2) //mouse clicked right side
+        {
+            if (currentControl == PhysicControls.direct)
+            {
+                rbPlayer.AddForce(new Vector2(forceX, forceY), ForceMode2D.Force);
+                HandleRotationRight();
+            }
+            else // PhysicControls are Thrusters
+            {
+                rbPlayer.AddForce(-leftThrust.transform.up * 15.4f);
+                HandleRotationRight();
+            }
+        }
+        else if (Input.GetMouseButton(0) && Input.mousePosition.x < Screen.width / 2) // Mouse clicked left side
+        {
+            if (currentControl == PhysicControls.direct)
+            {
+                rbPlayer.AddForce(new Vector2(-forceX, forceY), ForceMode2D.Force);
+                HandleRotationLeft();
+            }
+            else
+            {
+                rbPlayer.AddForce(-rightThrust.transform.up * 15.4f);
+                HandleRotationLeft();
+            }
+        }
+        else // If not clicking on mouse, handle rotation anyways
+        {
+            LevelRotation();
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Ground"))
+        {
+            rbPlayer.freezeRotation = false;
+            print("Touching ground");
+            isTouchingGround = true;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Ground"))
+        {
+            rbPlayer.freezeRotation = true;
+            print("Left the ground");
+            isTouchingGround = false;
+        }
+    }
+    void TouchMovement()
+    {
         if (Input.touchCount == 1)
         {
             if (Input.GetTouch(0).phase == TouchPhase.Began || Input.GetTouch(0).phase == TouchPhase.Stationary)
             {
                 if (currentControl == PhysicControls.direct)
                 {
-                    if (Input.GetTouch(0).position.x > Screen.width / 2)
+                    if (Input.GetTouch(0).position.x > Screen.width / 2) // Right side
                     {
                         rbPlayer.AddForce(new Vector2(forceX, forceY), ForceMode2D.Force);
+                        HandleRotationRight();
                     }
-                    else if (Input.GetTouch(0).position.x < Screen.width / 2)
+                    else if (Input.GetTouch(0).position.x < Screen.width / 2) // Left side
                     {
                         rbPlayer.AddForce(new Vector2(-forceX, forceY), ForceMode2D.Force);
+                        HandleRotationLeft();
                     }
                 }
                 else if (currentControl == PhysicControls.thrusters)
                 {
                     if (Input.GetTouch(0).position.x > Screen.width / 2) // right side of the screen
                     {
-                        rbPlayer.AddForceAtPosition(-leftThrust.transform.up * 8.4f, leftThrust.transform.position);
+                        rbPlayer.AddForce(-rightThrust.transform.up * 15.4f);
+                        HandleRotationRight();
                     }
                     else if (Input.GetTouch(0).position.x < Screen.width / 2) // left side of the screen
                     {
-                        rbPlayer.AddForceAtPosition(-rightThrust.transform.up * 8.4f, rightThrust.transform.position);
+                        rbPlayer.AddForce(-leftThrust.transform.up * 15.4f);
+                        HandleRotationLeft();
                     }
                 }
             }
@@ -100,84 +210,13 @@ public class TouchController : MonoBehaviour
             {
                 if (Input.GetTouch(0).position.x > Screen.width / 2 && Input.GetTouch(1).position.x < Screen.width / 2 || Input.GetTouch(1).position.x > Screen.width / 2 && Input.GetTouch(0).position.x < Screen.width / 2)
                 {
-                    rbPlayer.AddForce(new Vector2(0, forceY), ForceMode2D.Force);
+                    rbPlayer.AddForce(new Vector2(0, forceY*2), ForceMode2D.Force);
                 }
             }
         }
         else
         {
-            return;
-        }
-
-#endif
-
-        }
-
-    void HanleRotationRight()
-    { 
-        if (player.transform.localEulerAngles.z==0 || player.transform.localEulerAngles.z > 0 && player.transform.localEulerAngles.z >= 318 || player.transform.localEulerAngles.z <33)
-            player.transform.Rotate(0, 0, -0.5f);
-
-       
-    }
-    void HanleRotationLeft()
-    {
-         if (player.transform.localEulerAngles.z == 0 || player.transform.localEulerAngles.z <= 32 || player.transform.localEulerAngles.z >317)
-            player.transform.Rotate(0, 0, 0.5f);
-    }
-
-    void LevelRotation()
-    {
-        if (player.transform.localEulerAngles.z < 30.1f && player.transform.localEulerAngles.z > 0)
-        {
-            print("Level rotate right");
-            player.transform.Rotate(0, 0, -0.1f);
-
-        }
-        else if ( player.transform.localEulerAngles.z<=359.5f && player.transform.localEulerAngles.z>0 && player.transform.localEulerAngles.z<32)
-        {
-            print("Level rotate left");
-            player.transform.Rotate(0, 0, 0.1f);
-        }
-        
-    }
-    void MouseMovement()
-    {
-        if (Input.GetMouseButton(0) && Input.mousePosition.x > Screen.width / 2) //mouse clicked right side
-        {
-            print("Right side. Rotation z: " + player.transform.localEulerAngles.z);
-            if (currentControl == PhysicControls.direct)
-            {
-                rbPlayer.AddForce(new Vector2(forceX, forceY), ForceMode2D.Force);
-                HanleRotationRight();
-            }
-            else // PhysicControls are Thrusters
-            {
-                rbPlayer.AddForce(-leftThrust.transform.up * 15.4f);
-                HanleRotationRight();
-            }
-        }
-        else if (Input.GetMouseButton(0) && Input.mousePosition.x < Screen.width / 2) // Mouse clicked left side
-        {
-            print("Left side. Rotation z: " + player.transform.localEulerAngles.z);
-            if (currentControl == PhysicControls.direct)
-            {
-                rbPlayer.AddForce(new Vector2(-forceX, forceY), ForceMode2D.Force);
-                HanleRotationLeft();
-            }
-            else
-            {
-                rbPlayer.AddForce(-rightThrust.transform.up * 15.4f);
-                HanleRotationLeft();
-            }
-        }
-        else // If not clicking on mouse, handle rotation anyways
-        { 
             LevelRotation();
         }
     }
-    void TouchMovement()
-    {
-
-    }
-    }
+}
