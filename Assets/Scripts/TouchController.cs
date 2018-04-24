@@ -47,7 +47,7 @@ public class TouchController : MonoBehaviour
         playerTrans = player.GetComponent<Transform>();
         groundCheck = GetComponent<CircleCollider2D>();
         touchText = GameObject.Find("TouchCText");
-        
+
 
         buttonControls = GameObject.FindGameObjectsWithTag("ButtonControls");
         ShowHideOnScreenControls();
@@ -109,7 +109,7 @@ public class TouchController : MonoBehaviour
 
     void ShowHideOnScreenControls()
     {
-        if(currentControls == ControlMode.buttons)
+        if (currentControls == ControlMode.buttons)
         {
             foreach (GameObject onScreenButton in buttonControls)
             {
@@ -134,7 +134,7 @@ public class TouchController : MonoBehaviour
         {
             currentControls = ControlMode.buttons;
             ShowHideOnScreenControls();
-            
+
         }
         else
         {
@@ -175,7 +175,7 @@ public class TouchController : MonoBehaviour
 
     public void HandleRotationRight()
     {
-        print(playerTrans.localEulerAngles.z.ToString());
+        print("Rotation z: " +playerTrans.localEulerAngles.z.ToString());
         if (playerTrans.localEulerAngles.z == 0 || playerTrans.localEulerAngles.z > 0 && playerTrans.localEulerAngles.z >= 340 || playerTrans.localEulerAngles.z < 33)
             player.transform.Rotate(0, 0, -0.5f);
     }
@@ -221,7 +221,7 @@ public class TouchController : MonoBehaviour
         }
     }
 
-    void TouchMovement()
+    private void HandleOnScreenTouchControls()
     {
         if (Input.touchCount == 1)
         {
@@ -243,9 +243,9 @@ public class TouchController : MonoBehaviour
         {
             if (Input.GetTouch(1).phase == TouchPhase.Began || Input.GetTouch(1).phase == TouchPhase.Stationary)
             {
-                if (Input.GetTouch(0).position.x > Screen.width / 2 && Input.GetTouch(1).position.x<Screen.width / 2 || Input.GetTouch(1).position.x > Screen.width / 2 && Input.GetTouch(0).position.x<Screen.width / 2)
+                if (Input.GetTouch(0).position.x > Screen.width / 2 && Input.GetTouch(1).position.x < Screen.width / 2 || Input.GetTouch(1).position.x > Screen.width / 2 && Input.GetTouch(0).position.x < Screen.width / 2)
                 {
-                    ForceUp();   
+                    ForceUp();
                 }
             }
         }
@@ -254,7 +254,12 @@ public class TouchController : MonoBehaviour
             LevelRotation();
         }
     }
-    void MouseMovement()
+
+    private void HandleButtonControls()
+    {
+        return;
+    }
+    private void HandleOnScreenMouseControls()
     {
         if (Input.GetMouseButton(0) && Input.mousePosition.x > Screen.width / 2) //mouse clicked right side
         {
@@ -264,9 +269,35 @@ public class TouchController : MonoBehaviour
         {
             ForceLeft();
         }
-        else // If not clicking on mouse, handle rotation anyways
+        else
         {
             LevelRotation();
         }
+    }
+
+    void TouchMovement()
+    {
+        if (currentControls == ControlMode.screen)
+        {
+            HandleOnScreenTouchControls();
+        }
+        else if (currentControls == ControlMode.buttons)
+        {
+            HandleButtonControls();
+        }
+
+    }
+    void MouseMovement()
+    {
+        if (currentControls == ControlMode.screen)
+        {
+            HandleOnScreenMouseControls();
+        }
+        else if (currentControls == ControlMode.buttons)
+        {
+            HandleButtonControls();
+        }
+
+       
     }
 }
